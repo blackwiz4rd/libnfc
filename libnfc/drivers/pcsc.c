@@ -1050,6 +1050,7 @@ const struct nfc_driver pcsc_driver = {
   .strerror                         = pcsc_strerror,
 
   .initiator_init                   = pcsc_initiator_init,
+  .initiator_init_collision         = NULL,
   .initiator_init_secure_element    = NULL, // No secure-element support
   .initiator_select_passive_target  = pcsc_initiator_select_passive_target,
   .initiator_poll_target            = NULL,

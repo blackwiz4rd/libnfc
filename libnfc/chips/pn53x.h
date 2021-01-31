@@ -323,6 +323,7 @@ int    pn53x_idle(struct nfc_device *pnd);
 
 // NFC device as Initiator functions
 int    pn53x_initiator_init(struct nfc_device *pnd);
+int    pn53x_initiator_init_collision(struct nfc_device *pnd);
 void   pn53x_initiator_init_iclass_modulation(struct nfc_device *pnd);
 int    pn532_initiator_init_secure_element(struct nfc_device *pnd);
 int    pn53x_initiator_select_passive_target(struct nfc_device *pnd,

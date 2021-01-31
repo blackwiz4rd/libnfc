@@ -521,6 +521,57 @@ nfc_initiator_init(nfc_device *pnd)
 }
 
 /** @ingroup initiator
+ * @brief Initialize NFC device as initiator (reader) to support collision handling
+ * @return Returns 0 on success, otherwise returns libnfc's error code (negative value)
+ * @param pnd \a nfc_device struct pointer that represent currently used device
+ *
+ * The NFC device is configured to function as RFID reader.
+ * After initialization it can be used to communicate to passive RFID tags and active NFC devices.
+ * The reader will act as initiator to communicate peer 2 peer (NFCIP) to other active NFC devices.
+ * - Crc is handled by the device (NP_HANDLE_CRC = false)
+ * - Parity is handled the device (NP_HANDLE_PARITY = false)
+ * - Cryto1 cipher is disabled (NP_ACTIVATE_CRYPTO1 = false)
+ * - Easy framing is enabled (NP_EASY_FRAMING = false)
+ * - Auto-switching in ISO14443-4 mode is enabled (NP_AUTO_ISO14443_4 = false)
+ * - Invalid frames are not accepted (NP_ACCEPT_INVALID_FRAMES = true)
+ * - Multiple frames are not accepted (NP_ACCEPT_MULTIPLE_FRAMES = false)
+ * - 14443-A mode is activated (NP_FORCE_ISO14443_A = true)
+ * - speed is set to 106 kbps (NP_FORCE_SPEED_106 = true)
+ * - Let the device try forever to find a target (NP_INFINITE_SELECT = false)
+ * - RF field is shortly dropped (if it was enabled) then activated again
+ */
+int
+nfc_initiator_init_collision(nfc_device *pnd)
+{
+  int res = 0;
+  // Drop the field for a while
+  if ((res = nfc_device_set_property_bool(pnd, NP_ACTIVATE_FIELD, false)) < 0)
+    return res;
+  // Enable field so more power consuming cards can power themselves up
+  if ((res = nfc_device_set_property_bool(pnd, NP_ACTIVATE_FIELD, true)) < 0)
+    return res;
+  // Let the device try once to find a target/tag
+  if ((res = nfc_device_set_property_bool(pnd, NP_INFINITE_SELECT, false)) < 0)
+    return res;
+  // Disable auto ISO14443-4 switching
+  if ((res = nfc_device_set_property_bool(pnd, NP_AUTO_ISO14443_4, false)) < 0)
+    return res;
+  // Force 14443-A mode
+  if ((res = nfc_device_set_property_bool(pnd, NP_FORCE_ISO14443_A, true)) < 0)
+    return res;
+  // Force speed at 106kbps
+  if ((res = nfc_device_set_property_bool(pnd, NP_FORCE_SPEED_106, true)) < 0)
+    return res;
+  // Allow invalid frame
+  if ((res = nfc_device_set_property_bool(pnd, NP_ACCEPT_INVALID_FRAMES, true)) < 0)
+    return res;
+  // Disallow multiple frames
+  if ((res = nfc_device_set_property_bool(pnd, NP_ACCEPT_MULTIPLE_FRAMES, false)) < 0)
+    return res;
+  HAL(initiator_init_collision, pnd);
+}
+
+/** @ingroup initiator
  * @brief Initialize NFC device as initiator with its secure element as target (reader)
  * @return Returns 0 on success, otherwise returns libnfc's error code (negative value)
  * @param pnd \a nfc_device struct pointer that represent currently used device

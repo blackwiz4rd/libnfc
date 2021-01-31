@@ -879,6 +879,7 @@ const struct nfc_driver pn53x_usb_driver = {
   .strerror                         = pn53x_strerror,
 
   .initiator_init                   = pn53x_initiator_init,
+  .initiator_init_collision         = pn53x_initiator_init_collision,
   .initiator_init_secure_element    = NULL, // No secure-element support
   .initiator_select_passive_target  = pn53x_initiator_select_passive_target,
   .initiator_poll_target            = pn53x_initiator_poll_target,

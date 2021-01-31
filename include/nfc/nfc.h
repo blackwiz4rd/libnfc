@@ -94,6 +94,7 @@ NFC_EXPORT int nfc_idle(nfc_device *pnd);
 
 /* NFC initiator: act as "reader" */
 NFC_EXPORT int nfc_initiator_init(nfc_device *pnd);
+NFC_EXPORT int nfc_initiator_init_collision(nfc_device *pnd);
 NFC_EXPORT int nfc_initiator_init_secure_element(nfc_device *pnd);
 NFC_EXPORT int nfc_initiator_select_passive_target(nfc_device *pnd, const nfc_modulation nm, const uint8_t *pbtInitData, const size_t szInitData, nfc_target *pnt);
 NFC_EXPORT int nfc_initiator_list_passive_targets(nfc_device *pnd, const nfc_modulation nm, nfc_target ant[], const size_t szTargets);

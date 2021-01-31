@@ -11,6 +11,7 @@ EXPORTS
   nfc_list_devices
   nfc_idle
   nfc_initiator_init
+  nfc_initiator_init_collision
   nfc_initiator_init_secure_element
   nfc_initiator_select_passive_target
   nfc_initiator_list_passive_targets
