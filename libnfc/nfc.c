@@ -534,7 +534,7 @@ nfc_initiator_init(nfc_device *pnd)
  * - Easy framing is enabled (NP_EASY_FRAMING = false)
  * - Auto-switching in ISO14443-4 mode is enabled (NP_AUTO_ISO14443_4 = false)
  * - Invalid frames are not accepted (NP_ACCEPT_INVALID_FRAMES = true)
- * - Multiple frames are not accepted (NP_ACCEPT_MULTIPLE_FRAMES = false)
+ * - Multiple frames are accepted (NP_ACCEPT_MULTIPLE_FRAMES = true)
  * - 14443-A mode is activated (NP_FORCE_ISO14443_A = true)
  * - speed is set to 106 kbps (NP_FORCE_SPEED_106 = true)
  * - Let the device try forever to find a target (NP_INFINITE_SELECT = false)
@@ -566,7 +566,7 @@ nfc_initiator_init_collision(nfc_device *pnd)
   if ((res = nfc_device_set_property_bool(pnd, NP_ACCEPT_INVALID_FRAMES, true)) < 0)
     return res;
   // Disallow multiple frames
-  if ((res = nfc_device_set_property_bool(pnd, NP_ACCEPT_MULTIPLE_FRAMES, false)) < 0)
+  if ((res = nfc_device_set_property_bool(pnd, NP_ACCEPT_MULTIPLE_FRAMES, true)) < 0)
     return res;
   HAL(initiator_init_collision, pnd);
 }

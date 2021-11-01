@@ -1109,37 +1109,52 @@ pn53x_initiator_init_collision(struct nfc_device *pnd)
 
   log_put(LOG_GROUP, LOG_CATEGORY, NFC_LOG_PRIORITY_DEBUG, "Collision Init called");
 
-  // pn53x_WriteRegister(pnd, PN53X_REG_CIU_RFCfg, 0x78); // test all above 0x08
-
   // pn53x_WriteRegister(pnd, PN53X_REG_CIU_CommIEn, 0xa0); // RxIEn enabled
-  // By setting Collevel to 0x07, collisions should not detected by the chip
-  // pn53x_WriteRegister(pnd, PN53X_REG_CIU_RxThreshold, 0x87); 
 
   uint8_t reg;
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_RFCfg, &reg)) < 0) // 0x48
-    return res;
+  // Rember to place 1kOhm pull down resitor on pin AUX1!
+  // 0x70: On AUX1 -> DAC output: ADC_I combined with ADC_Q
+  // 0xd0: On AUX1 -> high during data bits, parity and CRC
+  // 0x50: On AUX1 -> DAC output: ADC_I
+  // 0x60: On AUX1 -> DAC output: ADC_Q
+  pn53x_WriteRegister(pnd, PN53X_REG_CIU_AnalogTest, 0x70); // nothing seen on combined
+  // pn53x_WriteRegister(pnd, PN53X_REG_CIU_AnalogTest, 0x50); // something seen on ADC_I
+  // pn53x_WriteRegister(pnd, PN53X_REG_CIU_AnalogTest, 0x60); // something seen on ADC_Q
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_RxThreshold, &reg)) < 0) // 0x84
-    return res;
+  // pn53x_WriteRegister(pnd, PN53X_REG_CIU_RxThreshold, 0xf4); // MinLevel and CollLevel
+  pn53x_WriteRegister(pnd, PN53X_REG_CIU_RFCfg, 0x78); // 48dB gain
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_Demod, &reg)) < 0) // 0x4d
-    return res;
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_RxMode, &reg)) < 0) // 0x08
-    return res;
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_AnalogTest, &reg)) < 0) // 0x00 by default
+  //   return res;
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_CommIEn, &reg)) < 0) // 0x80
-    return res;
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_AutoTest, &reg)) < 0) // 
+  //   return res;
+
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_RFCfg, &reg)) < 0) // 0x48
+  //   return res;
+
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_RxThreshold, &reg)) < 0) // 0x84
+  //   return res;
+
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_Demod, &reg)) < 0) // 0x4d
+  //   return res;
+
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_RxMode, &reg)) < 0) // 0x08
+  //   return res;
+
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_CommIEn, &reg)) < 0) // 0x80
+  //   return res;
     
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_DivIEn, &reg)) < 0) // 0x00
-    return res;
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_DivIEn, &reg)) < 0) // 0x00
+  //   return res;
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_CommIrq, &reg)) < 0) // 0x04
-    return res;
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_CommIrq, &reg)) < 0) // 0x04
+  //   return res;
 
-  if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_DivIrq, &reg)) < 0) // 0x03
-    return res;
+  // if ((res = pn53x_read_register(pnd, PN53X_REG_CIU_DivIrq, &reg)) < 0) // 0x03
+  //   return res;
 
   return NFC_SUCCESS;
 }
@@ -1657,18 +1672,18 @@ pn53x_initiator_transceive_bits(struct nfc_device *pnd, const uint8_t *pbtTx, co
     szFrameBits = ((szRx - 1 - ((ui8Bits == 0) ? 0 : 1)) * 8) + ui8Bits;
   else 
     szFrameBits = 0;
-  log_put(LOG_GROUP, LOG_CATEGORY, NFC_LOG_PRIORITY_DEBUG, "Real framelength in bits %zu, szRx %zu, ui8Bits %d", szFrameBits, szRx, ui8Bits);
+  log_put(LOG_GROUP, LOG_CATEGORY, NFC_LOG_PRIORITY_DEBUG, "Framelength in bits before unwrap: szFrameBits %zu, szRx %zu, ui8Bits %d", szFrameBits, szRx, ui8Bits);
 
   if (pbtRx != NULL) {
     // Ignore the status byte from the PN53X here, it was checked earlier in pn53x_transceive()
     // Check if we should recover the parity bits ourself
     if (!pnd->bPar) {
       // Print unwrapped response
-      printf("<= ");
-      for (size_t szPos = 0; szPos < szFrameBits/8; szPos++) {
-        printf("%02x ", abtRx[szPos]);
-      }
-      printf(" (not unwrapped) \n");
+      // printf("<= ");
+      // for (size_t szPos = 0; szPos < szFrameBits/8; szPos++) {
+      //   printf("%02x ", abtRx[szPos]);
+      // }
+      // printf(" (not unwrapped) \n");
       // Unwrap the response frame
       if ((res = pn53x_unwrap_frame(abtRx + 1, szFrameBits, pbtRx, pbtRxPar)) < 0)
         return res;
@@ -1680,7 +1695,8 @@ pn53x_initiator_transceive_bits(struct nfc_device *pnd, const uint8_t *pbtTx, co
       memcpy(pbtRx, abtRx + 1, szRx - 1);
     }
   }
-
+  
+  log_put(LOG_GROUP, LOG_CATEGORY, NFC_LOG_PRIORITY_DEBUG, "Framelength in bits after unwrap: szRxBits %zu", szRxBits);
   // Everything went successful
   return szRxBits;
 }
@@ -2460,6 +2476,7 @@ pn53x_initiator_target_is_present(struct nfc_device *pnd, const nfc_target *pnt)
 #define SAK_ISO14443_4_COMPLIANT 0x20
 #define SAK_ISO18092_COMPLIANT   0x40
 int
+// TODO: FIX THIS FUNCTION -> SEGMENTATION FAULT
 pn53x_target_init(struct nfc_device *pnd, nfc_target *pnt, uint8_t *pbtRx, const size_t szRxLen, int timeout)
 {
   pn53x_reset_settings(pnd);
@@ -2706,7 +2723,9 @@ pn53x_target_receive_bits(struct nfc_device *pnd, uint8_t *pbtRx, const size_t s
   uint8_t ui8Bits = ui8rcc & SYMBOL_RX_LAST_BITS;
 
   // Recover the real frame length in bits
-  size_t szFrameBits = ((szRx - 1 - ((ui8Bits == 0) ? 0 : 1)) * 8) + ui8Bits;
+  size_t szFrameBits = 0;
+  if (szRx - 1 > 0) // solves possible segmentation fault on bit collisions
+    szFrameBits = ((szRx - 1 - ((ui8Bits == 0) ? 0 : 1)) * 8) + ui8Bits;
 
   // Ignore the status byte from the PN53X here, it was checked earlier in pn53x_transceive()
   // Check if we should recover the parity bits ourself
